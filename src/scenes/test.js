@@ -103,7 +103,28 @@ class TestScene extends Scene {
             this.target.x = worldX;
             this.target.y = worldY;
 
-            this.physics.moveToObject(this.ship, this.target, 500);
+            // Calculate the angle between the ship and the target
+            const cursorAngle = Phaser.Math.Angle.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
+
+            let deltaRotation = cursorAngle - this.ship.rotation;
+            if (deltaRotation > Math.PI) {
+                deltaRotation = 2 * Math.PI - deltaRotation;
+                deltaRotation *= -1;
+            }
+            else if (deltaRotation < Math.PI * -1) {
+                deltaRotation = 2 * Math.PI + deltaRotation;
+            }
+            const rotationDuration = 600 * Math.abs(deltaRotation);
+            this.tweens.add({
+                targets: this.ship,
+                rotation: this.ship.rotation + deltaRotation,
+                duration: rotationDuration,
+                ease: 'Linear',
+                onComplete: () => {
+                    // At the end of the tween, apply acceleration for movement
+                    this.physics.moveToObject(this.ship, this.target, 500);
+                }
+            });
         });
     }
 
