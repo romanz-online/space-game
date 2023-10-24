@@ -1,4 +1,4 @@
-import Phaser, {Game} from 'phaser';
+import Phaser from 'phaser';
 import TestScene from './scenes/test';
 
 const config = {

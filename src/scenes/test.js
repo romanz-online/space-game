@@ -110,6 +110,7 @@ class TestScene extends Scene {
     update(time, delta) {
         const { left, right, up } = this.cursors;
 
+        // on-click movement
         if (this.ship.body.speed > 0) {
             const d = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
             if (d < 1) {
