@@ -102,6 +102,14 @@ class TestScene extends Scene {
 
             this.target.x = worldX;
             this.target.y = worldY;
+
+            if(this.movementLine) {
+                this.movementLine.destroy();
+            }
+
+            this.movementLine = this.add.graphics();
+            this.movementLine.lineStyle(2, 0xff6600, 0.2);
+            this.movementLine.lineBetween(this.ship.x, this.ship.y, this.target.x, this.target.y);
         });
     }
 
@@ -110,6 +118,11 @@ class TestScene extends Scene {
 
         // on-click movement
         if (this.target.x && this.target.y) {
+            this.movementLine.destroy();
+            this.movementLine = this.add.graphics();
+            this.movementLine.lineStyle(2, 0xff6600, 0.2);
+            this.movementLine.lineBetween(this.ship.x, this.ship.y, this.target.x, this.target.y);
+
             const d = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
             const cursorAngle = Phaser.Math.Angle.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
 
@@ -121,21 +134,26 @@ class TestScene extends Scene {
             else if (deltaRotation < Math.PI * -1) {
                 deltaRotation = 2 * Math.PI + deltaRotation;
             }
-            
+
             if (d < 10) {
                 this.ship.body.reset(this.target.x, this.target.y);
+                this.ship.setAngularVelocity(0);
+                this.ship.setAcceleration(0);
+                this.target.x = null;
+                this.target.y = null;
             }
             else {
                 if (deltaRotation > 0.1 || deltaRotation < -0.1) {
                     this.physics.velocityFromRotation(this.ship.rotation, 50 * Math.abs(deltaRotation), this.ship.body.acceleration);
                     if (deltaRotation > 0) {
-                        this.ship.setAngularVelocity(100);
+                        this.ship.setAngularVelocity(90);
                     }
                     else {
-                        this.ship.setAngularVelocity(-100);
+                        this.ship.setAngularVelocity(-90);
                     }
                 }
                 else {
+                    this.ship.rotation = cursorAngle;
                     this.ship.setAngularVelocity(0);
                     this.ship.setAcceleration(0);
                     this.physics.moveToObject(this.ship, this.target, 150);
@@ -176,11 +194,11 @@ class TestScene extends Scene {
             }
         }
 
-        // this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
-        // this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
+        this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
+        this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
 
-        // this.stars.tilePositionX += this.ship.body.deltaX() * 2;
-        // this.stars.tilePositionY += this.ship.body.deltaY() * 2;
+        this.stars.tilePositionX += this.ship.body.deltaX() * 2;
+        this.stars.tilePositionY += this.ship.body.deltaY() * 2;
     }
 }
 
