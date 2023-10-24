@@ -102,8 +102,14 @@ class TestScene extends Scene {
 
             this.target.x = worldX;
             this.target.y = worldY;
+        });
+    }
 
-            // Calculate the angle between the ship and the target
+    update(time, delta) {
+        const { left, right, up } = this.cursors;
+
+        if (this.target.x && this.target.y) {
+            const d = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
             const cursorAngle = Phaser.Math.Angle.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
 
             let deltaRotation = cursorAngle - this.ship.rotation;
@@ -114,29 +120,32 @@ class TestScene extends Scene {
             else if (deltaRotation < Math.PI * -1) {
                 deltaRotation = 2 * Math.PI + deltaRotation;
             }
-            const rotationDuration = 600 * Math.abs(deltaRotation);
-            this.tweens.add({
-                targets: this.ship,
-                rotation: this.ship.rotation + deltaRotation,
-                duration: rotationDuration,
-                ease: 'Linear',
-                onComplete: () => {
-                    // At the end of the tween, apply acceleration for movement
-                    this.physics.moveToObject(this.ship, this.target, 500);
-                }
-            });
-        });
-    }
-
-    update(time, delta) {
-        const { left, right, up } = this.cursors;
-
-        // on-click movement
-        if (this.ship.body.speed > 0) {
-            const d = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
-            if (d < 1) {
+            
+            if (d < 10) {
                 this.ship.body.reset(this.target.x, this.target.y);
             }
+            else {
+                if (deltaRotation > 0.1 || deltaRotation < -0.1) {
+                    this.physics.velocityFromRotation(this.ship.rotation, 50 * Math.abs(deltaRotation), this.ship.body.acceleration);
+                    if (deltaRotation > 0) {
+                        this.ship.setAngularVelocity(100);
+                    }
+                    else {
+                        this.ship.setAngularVelocity(-100);
+                    }
+                }
+                else {
+                    this.ship.setAngularVelocity(0);
+                    this.ship.setAcceleration(0);
+                    this.physics.moveToObject(this.ship, this.target, 150);
+                }
+            }
+        }
+        else {
+            this.ship.setAngularVelocity(0);
+            this.ship.setAcceleration(0);
+            this.target.x = null;
+            this.target.y = null;
         }
 
         // if (left.isDown) {
