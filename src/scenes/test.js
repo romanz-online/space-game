@@ -108,6 +108,7 @@ class TestScene extends Scene {
     update(time, delta) {
         const { left, right, up } = this.cursors;
 
+        // on-click movement
         if (this.target.x && this.target.y) {
             const d = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
             const cursorAngle = Phaser.Math.Angle.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
