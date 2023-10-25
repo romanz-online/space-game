@@ -3,9 +3,21 @@ const { Vector2 } = pMath;
 import Bullet from '../objects/bullet'
 
 class TestScene extends Scene {
+    constructor() {
+        super({
+            key: 'examples'
+        })
+    }
+
     lastFired = 0;
 
     preload() {
+        this.load.scenePlugin({
+            key: 'rexuiplugin',
+            url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+            sceneKey: 'rexUI'
+        });
+
         this.load.image('background', 'assets/tests/space/nebula.jpg');
         this.load.image('stars', 'assets/tests/space/stars.png');
         this.load.atlas('space', 'assets/tests/space/space.png', 'assets/tests/space/space.json');
@@ -37,11 +49,28 @@ class TestScene extends Scene {
         this.add.image(3140, 2974, 'space', 'brown-planet').setOrigin(0).setScrollFactor(0.6).setScale(0.8).setTint(0x882d2d);
         this.add.image(6052, 4280, 'space', 'purple-planet').setOrigin(0).setScrollFactor(0.6);
 
+        // this.add.sprite(4300, 3000).play('asteroid1-anim');
+
         for (let i = 0; i < 8; i++) {
             this.add.image(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000), 'space', 'eyes').setBlendMode(1).setScrollFactor(0.8);
         }
 
         this.stars = this.add.tileSprite(400, 300, 800, 600, 'stars').setScrollFactor(0);
+
+        this.bullets = this.physics.add.group({
+            classType: Bullet,
+            maxSize: 30,
+            runChildUpdate: true
+        });
+
+        this.ship = this.physics.add.image(4000, 3000, 'space', 'ship').setDepth(2);
+
+        this.ship.setDrag(300);
+        this.ship.body.setAllowGravity(false);
+        this.ship.setAngularDrag(400);
+        this.ship.setMaxVelocity(600);
+
+        this.cameras.main.startFollow(this.ship);
 
         const emitter = this.add.particles(0, 0, 'space', {
             frame: 'blue',
@@ -64,28 +93,10 @@ class TestScene extends Scene {
             scale: { start: 0.6, end: 0 },
             blendMode: 'ADD'
         });
-
-        this.bullets = this.physics.add.group({
-            classType: Bullet,
-            maxSize: 30,
-            runChildUpdate: true
-        });
-
-        this.ship = this.physics.add.image(4000, 3000, 'space', 'ship').setDepth(2);
-
-        this.ship.setDrag(300);
-        this.ship.body.setAllowGravity(false);
-        this.ship.setAngularDrag(400);
-        this.ship.setMaxVelocity(600);
-
         emitter.startFollow(this.ship);
 
-        this.cameras.main.startFollow(this.ship);
-
-        this.cursors = this.input.keyboard.createCursorKeys();
-        this.fire = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
-        this.add.sprite(4300, 3000).play('asteroid1-anim');
+        // this.cursors = this.input.keyboard.createCursorKeys();
+        // this.fire = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         this.tweens.add({
             targets: galaxy,
@@ -103,7 +114,7 @@ class TestScene extends Scene {
             this.target.x = worldX;
             this.target.y = worldY;
 
-            if(this.movementLine) {
+            if (this.movementLine) {
                 this.movementLine.destroy();
             }
 
@@ -111,10 +122,73 @@ class TestScene extends Scene {
             this.movementLine.lineStyle(2, 0xff6600, 0.2);
             this.movementLine.lineBetween(this.ship.x, this.ship.y, this.target.x, this.target.y);
         });
+
+        var dialog = this.rexUI.add.dialog({
+            x: this.ship.x,
+            y: this.ship.y,
+
+            background: this.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1565c0),
+
+            title: this.rexUI.add.label({
+                background: this.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x003c8f),
+                text: this.add.text(0, 0, 'Title', {
+                    fontSize: '24px'
+                }),
+                space: {
+                    left: 15,
+                    right: 15,
+                    top: 10,
+                    bottom: 10
+                }
+            }),
+
+            content: this.add.text(0, 0, 'Do you want to build a snow man?', {
+                fontSize: '24px'
+            }),
+
+            actions: [
+                createLabel(this, 'Yes'),
+                createLabel(this, 'No')
+            ],
+
+            space: {
+                title: 25,
+                content: 25,
+                action: 15,
+
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 20,
+            },
+
+            align: {
+                actions: 'right', // 'center'|'left'|'right'
+            },
+
+            expand: {
+                content: false, // Content is a pure text object
+            }
+        })
+            .layout()
+            // .drawBounds(this.add.graphics(), 0xff0000)
+            // .popUp(1000)
+            .setDepth(3);
+
+        dialog
+            .on('button.click', function (button, groupName, index) {
+                dialog.destroy();
+            }, this)
+            .on('button.over', function (button, groupName, index) {
+                button.getElement('background').setStrokeStyle(1, 0xffffff);
+            })
+            .on('button.out', function (button, groupName, index) {
+                button.getElement('background').setStrokeStyle();
+            });
     }
 
     update(time, delta) {
-        const { left, right, up } = this.cursors;
+        // const { left, right, up } = this.cursors;
 
         // on-click movement
         if (this.target.x && this.target.y) {
@@ -184,22 +258,42 @@ class TestScene extends Scene {
         //     this.ship.setAcceleration(0);
         // }
 
-        if (this.fire.isDown && time > this.lastFired) {
-            const bullet = this.bullets.get();
+        // if (this.fire.isDown && time > this.lastFired) {
+        //     const bullet = this.bullets.get();
 
-            if (bullet) {
-                bullet.fire(this.ship);
+        //     if (bullet) {
+        //         bullet.fire(this.ship);
 
-                this.lastFired = time + 100;
-            }
-        }
+        //         this.lastFired = time + 100;
+        //     }
+        // }
 
-        this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
-        this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
+        // this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
+        // this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
 
-        this.stars.tilePositionX += this.ship.body.deltaX() * 2;
-        this.stars.tilePositionY += this.ship.body.deltaY() * 2;
+        // this.stars.tilePositionX += this.ship.body.deltaX() * 2;
+        // this.stars.tilePositionY += this.ship.body.deltaY() * 2;
     }
+}
+
+var createLabel = function (scene, text) {
+    return scene.rexUI.add.label({
+        // width: 40,
+        // height: 40,
+
+        background: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 20, 0x5e92f3),
+
+        text: scene.add.text(0, 0, text, {
+            fontSize: '24px'
+        }),
+
+        space: {
+            left: 10,
+            right: 10,
+            top: 10,
+            bottom: 10
+        }
+    });
 }
 
 export default TestScene;

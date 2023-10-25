@@ -19,7 +19,8 @@
     "html-loader": "^4.2.0",
     "html-webpack-plugin": "^5.5.3",
     "mini-css-extract-plugin": "^2.7.6",
-    "phaser": "^3.60.0"
+    "phaser": "^3.60.0",
+    "phaser3-rex-plugins": "^1.60.6"
   },
   "scripts": {
     "start": "webpack serve --mode development --entry ./src/game.js",
