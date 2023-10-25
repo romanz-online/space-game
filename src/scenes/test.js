@@ -10,6 +10,7 @@ class TestScene extends Scene {
     }
 
     lastFired = 0;
+    distanceToMove = null;
 
     preload() {
         this.load.scenePlugin({
@@ -24,12 +25,7 @@ class TestScene extends Scene {
     }
 
     create() {
-        //  Prepare some spritesheets and animations
-        this.textures.addSpriteSheetFromAtlas('mine-sheet', { atlas: 'space', frame: 'mine', frameWidth: 64 });
-        this.textures.addSpriteSheetFromAtlas('asteroid1-sheet', { atlas: 'space', frame: 'asteroid1', frameWidth: 96 });
-        this.textures.addSpriteSheetFromAtlas('asteroid2-sheet', { atlas: 'space', frame: 'asteroid2', frameWidth: 96 });
-        this.textures.addSpriteSheetFromAtlas('asteroid3-sheet', { atlas: 'space', frame: 'asteroid3', frameWidth: 96 });
-        this.textures.addSpriteSheetFromAtlas('asteroid4-sheet', { atlas: 'space', frame: 'asteroid4', frameWidth: 64 });
+        loadTextures(this);
 
         this.anims.create({ key: 'mine-anim', frames: this.anims.generateFrameNumbers('mine-sheet', { start: 0, end: 15 }), frameRate: 20, repeat: -1 });
         this.anims.create({ key: 'asteroid1-anim', frames: this.anims.generateFrameNumbers('asteroid1-sheet', { start: 0, end: 24 }), frameRate: 20, repeat: -1 });
@@ -57,46 +53,29 @@ class TestScene extends Scene {
 
         this.stars = this.add.tileSprite(400, 300, 800, 600, 'stars').setScrollFactor(0);
 
-        this.bullets = this.physics.add.group({
-            classType: Bullet,
-            maxSize: 30,
-            runChildUpdate: true
-        });
-
         this.ship = this.physics.add.image(4000, 3000, 'space', 'ship').setDepth(2);
-
         this.ship.setDrag(300);
         this.ship.body.setAllowGravity(false);
         this.ship.setAngularDrag(400);
         this.ship.setMaxVelocity(600);
-
         this.cameras.main.startFollow(this.ship);
 
         const emitter = this.add.particles(0, 0, 'space', {
             frame: 'blue',
             speed: 100,
             lifespan: {
-                onEmit: (particle, key, t, value) => {
-                    return Phaser.Math.Percent(this.ship.body.speed, 0, 300) * 2000;
-                }
+                onEmit: (particle, key, t, value) => { return Phaser.Math.Percent(this.ship.body.speed, 0, 300) * 2000; }
             },
             alpha: {
-                onEmit: (particle, key, t, value) => {
-                    return Phaser.Math.Percent(this.ship.body.speed, 0, 300);
-                }
+                onEmit: (particle, key, t, value) => { return Phaser.Math.Percent(this.ship.body.speed, 0, 300); }
             },
             angle: {
-                onEmit: (particle, key, t, value) => {
-                    return (this.ship.angle - 180) + Phaser.Math.Between(-10, 10);
-                }
+                onEmit: (particle, key, t, value) => { return (this.ship.angle - 180) + Phaser.Math.Between(-10, 10); }
             },
             scale: { start: 0.6, end: 0 },
             blendMode: 'ADD'
         });
         emitter.startFollow(this.ship);
-
-        // this.cursors = this.input.keyboard.createCursorKeys();
-        // this.fire = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         this.tweens.add({
             targets: galaxy,
@@ -121,14 +100,20 @@ class TestScene extends Scene {
             this.movementLine = this.add.graphics();
             this.movementLine.lineStyle(2, 0xff6600, 0.2);
             this.movementLine.lineBetween(this.ship.x, this.ship.y, this.target.x, this.target.y);
+
+            this.ship.body.reset(this.ship.x, this.ship.y);
+            this.ship.setAngularVelocity(0);
+            this.ship.setAcceleration(0);
+
+            this.distanceToMove = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
+            const cursorAngle = Phaser.Math.Angle.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
+            this.ship.rotation = cursorAngle;
         });
 
         createPopup(this);
     }
 
     update(time, delta) {
-        // const { left, right, up } = this.cursors;
-
         // on-click movement
         if (this.target.x && this.target.y) {
             this.movementLine.destroy();
@@ -137,86 +122,40 @@ class TestScene extends Scene {
             this.movementLine.lineBetween(this.ship.x, this.ship.y, this.target.x, this.target.y);
 
             const d = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
-            const cursorAngle = Phaser.Math.Angle.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
-
-            let deltaRotation = cursorAngle - this.ship.rotation;
-            if (deltaRotation > Math.PI) {
-                deltaRotation = 2 * Math.PI - deltaRotation;
-                deltaRotation *= -1;
-            }
-            else if (deltaRotation < Math.PI * -1) {
-                deltaRotation = 2 * Math.PI + deltaRotation;
-            }
-
-            if (d < 10) {
+            if (d < 1) {
                 this.ship.body.reset(this.target.x, this.target.y);
-                this.ship.setAngularVelocity(0);
-                this.ship.setAcceleration(0);
                 this.target.x = null;
                 this.target.y = null;
             }
             else {
-                if (deltaRotation > 0.1 || deltaRotation < -0.1) {
-                    this.physics.velocityFromRotation(this.ship.rotation, 50 * Math.abs(deltaRotation), this.ship.body.acceleration);
-                    if (deltaRotation > 0) {
-                        this.ship.setAngularVelocity(90);
-                    }
-                    else {
-                        this.ship.setAngularVelocity(-90);
-                    }
-                }
-                else {
-                    this.ship.rotation = cursorAngle;
-                    this.ship.setAngularVelocity(0);
-                    this.ship.setAcceleration(0);
-                    this.physics.moveToObject(this.ship, this.target, 150);
-                }
+                this.physics.moveToObject(this.ship, this.target, shipSpeed(d, this.distanceToMove) + 30);
             }
         }
-        else {
-            this.ship.setAngularVelocity(0);
-            this.ship.setAcceleration(0);
-            this.target.x = null;
-            this.target.y = null;
-        }
 
-        // if (left.isDown) {
-        //     this.ship.setAngularVelocity(-150);
-        // }
-        // else if (right.isDown) {
-        //     this.ship.setAngularVelocity(150);
-        // }
-        // else {
-        //     this.ship.setAngularVelocity(0);
-        // }
+        // moving environment visuals
+        this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
+        this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
 
-        // if (up.isDown) {
-        //     this.physics.velocityFromRotation(this.ship.rotation, 600, this.ship.body.acceleration);
-        // }
-        // else {
-        //     this.ship.setAcceleration(0);
-        // }
-
-        // if (this.fire.isDown && time > this.lastFired) {
-        //     const bullet = this.bullets.get();
-
-        //     if (bullet) {
-        //         bullet.fire(this.ship);
-
-        //         this.lastFired = time + 100;
-        //     }
-        // }
-
-        // this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
-        // this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
-
-        // this.stars.tilePositionX += this.ship.body.deltaX() * 2;
-        // this.stars.tilePositionY += this.ship.body.deltaY() * 2;
+        this.stars.tilePositionX += this.ship.body.deltaX() * 2;
+        this.stars.tilePositionY += this.ship.body.deltaY() * 2;
     }
 }
 
+function shipSpeed(currentPosition, totalDistance) {
+    const maxSpeed = 200 * totalDistance > 200 ? 200 : 200 * totalDistance;
+    const midPosition = totalDistance / 2;
+
+    let factor = 0;
+    if (currentPosition < midPosition) {
+        factor = currentPosition / midPosition;
+    } else {
+        factor = 1 - (currentPosition - midPosition) / midPosition;
+    }
+    return maxSpeed * factor;
+}
+
 function createPopup(scene) {
-    var dialog = scene.rexUI.add.dialog({
+    let dialog = scene.rexUI.add.dialog({
         x: scene.ship.x,
         y: scene.ship.y,
 
@@ -280,7 +219,7 @@ function createPopup(scene) {
         });
 }
 
-var createLabel = function (scene, text) {
+let createLabel = function (scene, text) {
     return scene.rexUI.add.label({
         // width: 40,
         // height: 40,
@@ -298,6 +237,14 @@ var createLabel = function (scene, text) {
             bottom: 10
         }
     });
+}
+
+function loadTextures(scene) {
+    scene.textures.addSpriteSheetFromAtlas('mine-sheet', { atlas: 'space', frame: 'mine', frameWidth: 64 });
+    scene.textures.addSpriteSheetFromAtlas('asteroid1-sheet', { atlas: 'space', frame: 'asteroid1', frameWidth: 96 });
+    scene.textures.addSpriteSheetFromAtlas('asteroid2-sheet', { atlas: 'space', frame: 'asteroid2', frameWidth: 96 });
+    scene.textures.addSpriteSheetFromAtlas('asteroid3-sheet', { atlas: 'space', frame: 'asteroid3', frameWidth: 96 });
+    scene.textures.addSpriteSheetFromAtlas('asteroid4-sheet', { atlas: 'space', frame: 'asteroid4', frameWidth: 64 });
 }
 
 export default TestScene;
