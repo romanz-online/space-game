@@ -11,6 +11,7 @@ class TestScene extends Scene {
 
     lastFired = 0;
     distanceToMove = null;
+    movementEnabled = true;
 
     preload() {
         this.load.scenePlugin({
@@ -22,7 +23,7 @@ class TestScene extends Scene {
         this.load.image('background', 'assets/tests/space/nebula.jpg');
         this.load.image('stars', 'assets/tests/space/stars.png');
         this.load.atlas('space', 'assets/tests/space/space.png', 'assets/tests/space/space.json');
-        
+
         this.load.image('small_freighter', 'assets/small_freighter.png');
     }
 
@@ -91,6 +92,10 @@ class TestScene extends Scene {
         // on-click movement
         this.target = new Vector2();
         this.input.on('pointerup', (pointer) => {
+            if (!this.movementEnabled) {
+                return;
+            }
+
             const { worldX, worldY } = pointer;
 
             this.target.x = worldX;
@@ -110,7 +115,26 @@ class TestScene extends Scene {
 
             this.distanceToMove = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
             const cursorAngle = Phaser.Math.Angle.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
-            this.ship.rotation = cursorAngle;
+
+            let deltaRotation = cursorAngle - this.ship.rotation;
+            if (deltaRotation > Math.PI) {
+                deltaRotation = 2 * Math.PI - deltaRotation;
+                deltaRotation *= -1;
+            }
+            else if (deltaRotation < Math.PI * -1) {
+                deltaRotation = 2 * Math.PI + deltaRotation;
+            }
+
+            this.tweens.add({
+                targets: this.ship,
+                rotation: this.ship.rotation + deltaRotation,
+                duration: 500 * Math.abs(deltaRotation),
+                ease: 'Sine.easeInOut',
+                onComplete: () => {
+                    
+                }
+            });
+            // this.ship.rotation = cursorAngle;
         });
 
         createPopup(this);
@@ -158,6 +182,7 @@ function shipSpeed(currentPosition, totalDistance) {
 }
 
 function createPopup(scene) {
+    scene.movementEnabled = false;
     let dialog = scene.rexUI.add.dialog({
         x: scene.ship.x,
         y: scene.ship.y,
@@ -212,6 +237,7 @@ function createPopup(scene) {
 
     dialog
         .on('button.click', function (button, groupName, index) {
+            scene.movementEnabled = true;
             dialog.destroy();
         }, this)
         .on('button.over', function (button, groupName, index) {
