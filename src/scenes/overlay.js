@@ -8,8 +8,6 @@ class OverlayScene extends Scene {
         })
     }
 
-    testDataHERE = 'XXXXXXX';
-
     preload() {
         this.load.scenePlugin({
             key: 'rexuiplugin',

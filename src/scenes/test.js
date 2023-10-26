@@ -1,7 +1,6 @@
 import { Scene, Math as pMath } from 'phaser';
 const { Vector2 } = pMath;
 import Bullet from '../objects/bullet'
-import OverlayScene from './overlay';
 
 class TestScene extends Scene {
     constructor() {
