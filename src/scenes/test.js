@@ -133,8 +133,6 @@ class TestScene extends Scene {
         this.input.keyboard.on('keydown-SPACE', () => {
             if(!this.openDialog) {
                 this.openDialog = true;
-                console.log(this);
-                console.log(this.scene.get('OverlayScene'));
                 this.scene.get('OverlayScene').createPopup();
             }
         });
