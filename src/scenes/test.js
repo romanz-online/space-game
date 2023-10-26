@@ -22,6 +22,8 @@ class TestScene extends Scene {
         this.load.image('background', 'assets/tests/space/nebula.jpg');
         this.load.image('stars', 'assets/tests/space/stars.png');
         this.load.atlas('space', 'assets/tests/space/space.png', 'assets/tests/space/space.json');
+        
+        this.load.image('small_freighter', 'assets/small_freighter.png');
     }
 
     create() {
@@ -53,7 +55,8 @@ class TestScene extends Scene {
 
         this.stars = this.add.tileSprite(400, 300, 800, 600, 'stars').setScrollFactor(0);
 
-        this.ship = this.physics.add.image(4000, 3000, 'space', 'ship').setDepth(2);
+        // this.ship = this.physics.add.image(4000, 3000, 'space', 'ship').setDepth(2);
+        this.ship = this.physics.add.image(4000, 3000, 'small_freighter').setDepth(2);
         this.ship.setDrag(300);
         this.ship.body.setAllowGravity(false);
         this.ship.setAngularDrag(400);
