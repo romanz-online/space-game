@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import TestScene from './scenes/test';
+import OverlayScene from './scenes/overlay';
 
 const config = {
     type: Phaser.AUTO,
@@ -12,7 +13,8 @@ const config = {
             debug: false
         }
     },
-    scene: TestScene
+    scene: [TestScene, OverlayScene]
+    // scene: TestScene
 };
 
 const game = new Phaser.Game(config);
