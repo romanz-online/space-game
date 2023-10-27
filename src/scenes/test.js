@@ -47,8 +47,10 @@ class TestScene extends Scene {
         this.add.image(6052, 4280, 'space', 'purple-planet').setOrigin(0).setScrollFactor(0.6);
 
         asteroids = this.physics.add.staticGroup();
-        asteroids.create(4300, 3000).play('asteroid1-anim').setSize(400, 400).refreshBody();
-        // this.add.sprite(4300, 3000).play('asteroid1-anim');
+        asteroids.create(4300, 3000) // coordinates
+            .play('asteroid1-anim') // play the animated sprite
+            .setSize(400, 400) // hitbox for detecting proximity
+            .refreshBody(); // need to do this to make the object load in
 
         for (let i = 0; i < 8; i++) {
             this.add.image(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000), 'space', 'eyes').setBlendMode(1).setScrollFactor(0.8);
