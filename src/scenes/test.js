@@ -3,11 +3,9 @@ const { Vector2 } = pMath;
 import Bullet from '../objects/bullet'
 
 class TestScene extends Scene {
-    constructor() {
-        super({
-            key: 'TestScene',
-            active: true
-        })
+    constructor(resolutionConfig) {
+        super({ key: 'TestScene', active: true });
+        this.resolution = resolutionConfig;
     }
 
     lastFired = 0;
@@ -33,7 +31,7 @@ class TestScene extends Scene {
         this.anims.create({ key: 'asteroid4-anim', frames: this.anims.generateFrameNumbers('asteroid4-sheet', { start: 0, end: 23 }), frameRate: 20, repeat: -1 });
 
         //  World size is 8000 x 6000
-        this.bg = this.add.tileSprite(400, 300, 800, 600, 'background').setScrollFactor(0);
+        this.bg = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'background').setScrollFactor(0);
 
         //  Add our planets, etc
         this.add.image(512, 680, 'space', 'blue-planet').setOrigin(0).setScrollFactor(0.6);
@@ -50,7 +48,7 @@ class TestScene extends Scene {
             this.add.image(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000), 'space', 'eyes').setBlendMode(1).setScrollFactor(0.8);
         }
 
-        this.stars = this.add.tileSprite(400, 300, 800, 600, 'stars').setScrollFactor(0);
+        this.stars = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'stars').setScrollFactor(0);
 
         // this.ship = this.physics.add.image(4000, 3000, 'space', 'ship').setDepth(2);
         this.ship = this.physics.add.image(4000, 3000, 'small_freighter').setDepth(2);
@@ -130,7 +128,7 @@ class TestScene extends Scene {
         });
 
         this.input.keyboard.on('keydown-SPACE', () => {
-            if(!this.openDialog) {
+            if (!this.openDialog) {
                 this.openDialog = true;
                 this.scene.get('OverlayScene').createPopup();
             }

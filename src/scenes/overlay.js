@@ -28,14 +28,15 @@ class OverlayScene extends Scene {
 
 
     createPopup() {
+        const height = 100;
         let dialog = this.rexUI.add.dialog({
             x: this.cameras.main.worldView.centerX,
-            y: this.cameras.main.worldView.centerY,
+            y: this.cameras.main.worldView.bottom - height,
 
-            background: this.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1565c0),
+            background: this.rexUI.add.roundRectangle(0, 0, height, 100, 2, 0x1565c0),
 
             title: this.rexUI.add.label({
-                background: this.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x003c8f),
+                background: this.rexUI.add.roundRectangle(0, 0, height, 40, 2, 0x003c8f),
                 text: this.add.text(0, 0, 'Title', {
                     fontSize: '24px'
                 }),
@@ -47,7 +48,7 @@ class OverlayScene extends Scene {
                 }
             }),
 
-            content: this.add.text(0, 0, 'Do you want to build a snow man?', {
+            content: this.add.text(0, 0, 'Test dialogue', {
                 fontSize: '24px'
             }),
 
@@ -83,8 +84,6 @@ class OverlayScene extends Scene {
 
         dialog
             .on('button.click', function (button, groupName, index) {
-                this.movementEnabled = true;
-                this.openDialog = false;
                 dialog.destroy();
             }, this)
             .on('button.over', function (button, groupName, index) {
