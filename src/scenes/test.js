@@ -11,6 +11,8 @@ class TestScene extends Scene {
     lastFired = 0;
     distanceToMove = null;
     movementEnabled = true;
+    currentSpeed = 30;
+    taperOffPoint = -1;
     openDialog = false;
 
     preload() {
@@ -130,7 +132,7 @@ class TestScene extends Scene {
         this.input.keyboard.on('keydown-SPACE', () => {
             if (!this.openDialog) {
                 this.openDialog = true;
-                this.scene.get('OverlayScene').createPopup();
+                this.scene.get('OverlayScene').createPopup('this is a test popup. confirm');
             }
         });
     }
@@ -148,9 +150,11 @@ class TestScene extends Scene {
                 this.ship.body.reset(this.target.x, this.target.y);
                 this.target.x = null;
                 this.target.y = null;
+                this.taperOffPoint = -1;
             }
             else {
-                this.physics.moveToObject(this.ship, this.target, shipSpeed(d, this.distanceToMove) + 30);
+                this.currentSpeed = this.shipSpeed(d, this.distanceToMove);
+                this.physics.moveToObject(this.ship, this.target, this.currentSpeed);
             }
         }
 
@@ -161,19 +165,35 @@ class TestScene extends Scene {
         this.stars.tilePositionX += this.ship.body.deltaX() * 2;
         this.stars.tilePositionY += this.ship.body.deltaY() * 2;
     }
-}
 
-function shipSpeed(currentPosition, totalDistance) {
-    const maxSpeed = 200 * totalDistance > 200 ? 200 : 200 * totalDistance;
-    const midPosition = totalDistance / 2;
-
-    let factor = 0;
-    if (currentPosition < midPosition) {
-        factor = currentPosition / midPosition;
-    } else {
-        factor = 1 - (currentPosition - midPosition) / midPosition;
+    shipSpeed(currentPosition, totalDistance) {
+        const maxSpeed = 200;
+        const baseSpeed = 30;
+        const midPosition = totalDistance / 2;
+        let direction = (currentPosition > midPosition) ? 1 : -1;
+        if(this.taperOffPoint === -1) {
+            if(this.currentSpeed >= maxSpeed) {
+                this.taperOffPoint = totalDistance - currentPosition;
+            }
+        }
+        if(this.taperOffPoint !== -1 && currentPosition > this.taperOffPoint) {
+            direction = 1;
+        }
+        
+        const accel = 0.025 * direction;
+    
+        const acceleratedSpeed = this.currentSpeed + (this.currentSpeed * accel);
+        console.log(acceleratedSpeed);
+        
+        if(acceleratedSpeed > maxSpeed) {
+            return maxSpeed;
+        }
+        else if(acceleratedSpeed < baseSpeed) {
+            return baseSpeed;
+        }
+    
+        return acceleratedSpeed;
     }
-    return maxSpeed * factor;
 }
 
 function loadTextures(scene) {

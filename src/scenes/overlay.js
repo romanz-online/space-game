@@ -27,7 +27,7 @@ class OverlayScene extends Scene {
 
 
 
-    createPopup() {
+    createPopup(text) {
         const height = 100;
         let dialog = this.rexUI.add.dialog({
             x: this.cameras.main.worldView.centerX,
@@ -48,7 +48,7 @@ class OverlayScene extends Scene {
                 }
             }),
 
-            content: this.add.text(0, 0, 'Test dialogue', {
+            content: this.add.text(0, 0, text, {
                 fontSize: '24px'
             }),
 
@@ -84,6 +84,7 @@ class OverlayScene extends Scene {
 
         dialog
             .on('button.click', function (button, groupName, index) {
+                this.input.stopPropagation();
                 dialog.destroy();
             }, this)
             .on('button.over', function (button, groupName, index) {
