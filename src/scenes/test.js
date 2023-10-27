@@ -2,6 +2,8 @@ import { Scene, Math as pMath } from 'phaser';
 const { Vector2 } = pMath;
 import Bullet from '../objects/bullet'
 
+let asteroids;
+
 class TestScene extends Scene {
     constructor(resolutionConfig) {
         super({ key: 'TestScene', active: true });
@@ -44,6 +46,8 @@ class TestScene extends Scene {
         this.add.image(3140, 2974, 'space', 'brown-planet').setOrigin(0).setScrollFactor(0.6).setScale(0.8).setTint(0x882d2d);
         this.add.image(6052, 4280, 'space', 'purple-planet').setOrigin(0).setScrollFactor(0.6);
 
+        asteroids = this.physics.add.staticGroup();
+        asteroids.create(4300, 3000).play('asteroid1-anim').setSize(400, 400).refreshBody();
         // this.add.sprite(4300, 3000).play('asteroid1-anim');
 
         for (let i = 0; i < 8; i++) {
@@ -130,11 +134,18 @@ class TestScene extends Scene {
         });
 
         this.input.keyboard.on('keydown-SPACE', () => {
-            if (!this.openDialog) {
-                this.openDialog = true;
-                this.scene.get('OverlayScene').createPopup('this is a test popup. confirm');
-            }
+            // if (!this.openDialog) {
+            //     this.openDialog = true;
+            //     this.scene.get('OverlayScene').createPopup('this is a test popup. confirm');
+            // }
         });
+
+        this.physics.add.overlap(this.ship, asteroids, function (ship, asteroid) {
+            if (!this.openDialog) { // move this openDialog stuff to OverlayScene. it should be the one to handle this
+                this.openDialog = true;
+                this.scene.get('OverlayScene').createPopup('Ship has entered the vicinity of an asteroid.');
+            }
+        }, null, this);
     }
 
     update(time, delta) {
@@ -171,27 +182,25 @@ class TestScene extends Scene {
         const baseSpeed = 30;
         const midPosition = totalDistance / 2;
         let direction = (currentPosition > midPosition) ? 1 : -1;
-        if(this.taperOffPoint === -1) {
-            if(this.currentSpeed >= maxSpeed) {
+        if (this.taperOffPoint === -1) {
+            if (this.currentSpeed >= maxSpeed) {
                 this.taperOffPoint = totalDistance - currentPosition;
             }
         }
-        if(this.taperOffPoint !== -1 && currentPosition > this.taperOffPoint) {
+        if (this.taperOffPoint !== -1 && currentPosition > this.taperOffPoint) {
             direction = 1;
         }
-        
+
         const accel = 0.025 * direction;
-    
+
         const acceleratedSpeed = this.currentSpeed + (this.currentSpeed * accel);
-        console.log(acceleratedSpeed);
-        
-        if(acceleratedSpeed > maxSpeed) {
+        if (acceleratedSpeed > maxSpeed) {
             return maxSpeed;
         }
-        else if(acceleratedSpeed < baseSpeed) {
+        else if (acceleratedSpeed < baseSpeed) {
             return baseSpeed;
         }
-    
+
         return acceleratedSpeed;
     }
 }
