@@ -15,7 +15,7 @@ class TestScene extends Scene {
     movementEnabled = true;
     currentSpeed = 30;
     taperOffPoint = -1;
-    openDialog = false;
+    openDialog = false; // move this openDialog stuff to OverlayScene. it should be the one to handle this
 
     preload() {
         this.load.image('background', 'assets/tests/space/nebula.jpg');
@@ -51,6 +51,11 @@ class TestScene extends Scene {
             .play('asteroid1-anim') // play the animated sprite
             .setSize(400, 400) // hitbox for detecting proximity
             .refreshBody(); // need to do this to make the object load in
+
+        asteroids.create(3700, 3000)
+            .play('asteroid1-anim')
+            .setSize(400, 400)
+            .refreshBody();
 
         for (let i = 0; i < 8; i++) {
             this.add.image(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000), 'space', 'eyes').setBlendMode(1).setScrollFactor(0.8);
@@ -135,19 +140,31 @@ class TestScene extends Scene {
             });
         });
 
-        this.input.keyboard.on('keydown-SPACE', () => {
+        this.physics.add.overlap(this.ship, asteroids, function (ship, asteroid) {
             // if (!this.openDialog) {
             //     this.openDialog = true;
-            //     this.scene.get('OverlayScene').createPopup('this is a test popup. confirm');
+            //     this.scene.get('OverlayScene').createPopup('Ship has entered the vicinity of an asteroid.');
             // }
-        });
-
-        this.physics.add.overlap(this.ship, asteroids, function (ship, asteroid) {
-            if (!this.openDialog) { // move this openDialog stuff to OverlayScene. it should be the one to handle this
-                this.openDialog = true;
-                this.scene.get('OverlayScene').createPopup('Ship has entered the vicinity of an asteroid.');
-            }
         }, null, this);
+
+        this.input.keyboard.on('keydown-SPACE', () => {
+            // Check for overlap between the ship and asteroids
+            const overlappingAsteroids = asteroids.getChildren().filter(asteroid => {
+                return Phaser.Geom.Intersects.RectangleToRectangle(this.ship.getBounds(), asteroid.getBounds());
+            });
+
+            if (overlappingAsteroids.length > 0) {
+                // The ship is overlapping with at least one asteroid
+                this.scene.get('OverlayScene').createPopup('Ship has entered the vicinity of an asteroid.');
+
+                const closestAsteroid = overlappingAsteroids.reduce((distance, asteroid) => {
+                    const asteroidDistance = pMath.Distance.Between(this.ship.x, this.ship.y, asteroid.x, asteroid.y);
+                    return (asteroidDistance < distance) ? { asteroid, distance: asteroidDistance } : asteroid;
+                }, { asteroid: overlappingAsteroids[0], distance: pMath.Distance.Between(this.ship.x, this.ship.y, overlappingAsteroids[0].x, overlappingAsteroids[0].y) });
+
+                console.log('the closest asteroid is at', closestAsteroid.x, ',', closestAsteroid.y);
+            }
+        });
     }
 
     update(time, delta) {
@@ -193,7 +210,7 @@ class TestScene extends Scene {
             direction = 1;
         }
 
-        const accel = 0.025 * direction;
+        const accel = 0.02 * direction;
 
         const acceleratedSpeed = this.currentSpeed + (this.currentSpeed * accel);
         if (acceleratedSpeed > maxSpeed) {
