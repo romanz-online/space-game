@@ -8,6 +8,9 @@ class OverlayScene extends Scene {
         })
     }
 
+    hp = 100;
+    stats = '$!$%@';
+
     preload() {
         this.load.scenePlugin({
             key: 'rexuiplugin',
@@ -18,6 +21,11 @@ class OverlayScene extends Scene {
 
     create() {
         loadTextures(this);
+
+        this.hp = this.add.text(this.cameras.main.worldView.left + 16, this.cameras.main.worldView.top + 16, `Hull Integrity: ${this.hp}`, { fontSize: '24px', fill: '#FFF' })
+            .setScrollFactor(0);
+        this.stats = this.add.text(this.cameras.main.worldView.left + 16, this.cameras.main.worldView.top + 48, `Other stats: ${this.stats}`, { fontSize: '24px', fill: '#FFF' })
+            .setScrollFactor(0);
     }
 
     update(time, delta) {
