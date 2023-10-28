@@ -23,6 +23,8 @@ class TestScene extends Scene {
         this.load.atlas('space', 'assets/tests/space/space.png', 'assets/tests/space/space.json');
 
         this.load.image('small_freighter', 'assets/small_freighter.png');
+
+        this.load.atlas('ui', 'assets/ui/nine-slice.png', 'assets/ui/nine-slice.json');
     }
 
     create() {
@@ -143,7 +145,7 @@ class TestScene extends Scene {
         this.physics.add.overlap(this.ship, asteroids, function (ship, asteroid) {
             // if (!this.openDialog) {
             //     this.openDialog = true;
-            //     this.scene.get('OverlayScene').createPopup('Ship has entered the vicinity of an asteroid.');
+            //     SCENE.get('OverlayScene').createPopup('Ship has entered the vicinity of an asteroid.');
             // }
         }, null, this);
 
@@ -155,14 +157,31 @@ class TestScene extends Scene {
 
             if (overlappingAsteroids.length > 0) {
                 // The ship is overlapping with at least one asteroid
-                this.scene.get('OverlayScene').createPopup('Ship has entered the vicinity of an asteroid.');
-
                 const closestAsteroid = overlappingAsteroids.reduce((distance, asteroid) => {
                     const asteroidDistance = pMath.Distance.Between(this.ship.x, this.ship.y, asteroid.x, asteroid.y);
                     return (asteroidDistance < distance) ? { asteroid, distance: asteroidDistance } : asteroid;
                 }, { asteroid: overlappingAsteroids[0], distance: pMath.Distance.Between(this.ship.x, this.ship.y, overlappingAsteroids[0].x, overlappingAsteroids[0].y) });
 
                 console.log('the closest asteroid is at', closestAsteroid.x, ',', closestAsteroid.y);
+
+                const loadingBar = this.add.nineslice(this.ship.x, this.ship.y, 'ui', 'ButtonOrange');
+                const loadingFill = this.add.nineslice(this.ship.x - 114, this.ship.y - 2, 'ui', 'ButtonOrangeFill1', 13, 39, 6, 6);
+
+                loadingFill.setOrigin(0, 0.5);
+
+                this.tweens.add({
+                    targets: loadingFill,
+                    width: 228,
+                    duration: 3000,
+                    ease: 'Linear',
+                    onComplete: () => {
+                        closestAsteroid.destroy();
+                        loadingBar.destroy();
+                        loadingFill.destroy();
+                        this.scene.get('OverlayScene').createPopup('Destroyed nearby asteroid.');
+                    }
+                });
+
             }
         });
     }
@@ -181,6 +200,7 @@ class TestScene extends Scene {
                 this.target.x = null;
                 this.target.y = null;
                 this.taperOffPoint = -1;
+                this.currentSpeed = 0;
             }
             else {
                 this.currentSpeed = this.shipSpeed(d, this.distanceToMove);
