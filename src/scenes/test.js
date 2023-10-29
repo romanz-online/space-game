@@ -166,10 +166,7 @@ class TestScene extends Scene {
                     return (asteroidDistance < distance) ? { asteroid, distance: asteroidDistance } : asteroid;
                 }, { asteroid: overlappingAsteroids[0], distance: pMath.Distance.Between(this.ship.x, this.ship.y, overlappingAsteroids[0].x, overlappingAsteroids[0].y) });
 
-                // loading bar stuff should be in Overlay
-
                 this.currentPlayerAction = new LoadingBarAction(this, closestAsteroid);
-
                 this.currentPlayerAction.onDestroy.on(LoadingBarAction.COMPLETED, () => {
                     Overlay.createPopup(`Asteroid at ${closestAsteroid.x}, ${closestAsteroid.y} has been destroyed.`);
                     closestAsteroid.destroy();
