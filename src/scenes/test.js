@@ -1,6 +1,7 @@
 import { Scene, Math as pMath } from 'phaser';
 const { Vector2 } = pMath;
-import Bullet from '../objects/bullet'
+import Bullet from '../objects/bullet';
+import LoadingBarAction from '../util/loadingBarAction';
 
 let asteroids;
 let Overlay;
@@ -17,6 +18,7 @@ class TestScene extends Scene {
     currentSpeed = 30;
     taperOffPoint = -1;
     openDialog = false; // move this openDialog stuff to OverlayScene. it should be the one to handle this
+    currentPlayerAction = null;
 
     preload() {
         this.load.image('background', 'assets/tests/space/nebula.jpg');
@@ -104,6 +106,12 @@ class TestScene extends Scene {
         // on-click movement
         this.target = new Vector2();
         this.input.on('pointerup', (pointer) => {
+            if(this.currentPlayerAction) {
+                this.currentPlayerAction.onDestroy.off(LoadingBarAction.COMPLETED);
+                this.currentPlayerAction.destroy();
+                this.currentPlayerAction = null;
+            }
+
             if (!this.movementEnabled) {
                 return;
             }
@@ -145,13 +153,6 @@ class TestScene extends Scene {
             });
         });
 
-        this.physics.add.overlap(this.ship, asteroids, function (ship, asteroid) {
-            // if (!this.openDialog) {
-            //     this.openDialog = true;
-            //     Overlay.createPopup('Ship has entered the vicinity of an asteroid.');
-            // }
-        }, null, this);
-
         this.input.keyboard.on('keyup-SPACE', () => {
             // Check for overlap between the ship and asteroids
             const overlappingAsteroids = asteroids.getChildren().filter(asteroid => {
@@ -166,24 +167,15 @@ class TestScene extends Scene {
                 }, { asteroid: overlappingAsteroids[0], distance: pMath.Distance.Between(this.ship.x, this.ship.y, overlappingAsteroids[0].x, overlappingAsteroids[0].y) });
 
                 // loading bar stuff should be in Overlay
-                const loadingBar = this.add.nineslice(this.ship.x, this.ship.y, 'ui', 'ButtonOrange');
-                const loadingFill = this.add.nineslice(this.ship.x - 114, this.ship.y - 2, 'ui', 'ButtonOrangeFill1', 13, 39, 6, 6);
 
-                loadingFill.setOrigin(0, 0.5);
+                this.currentPlayerAction = new LoadingBarAction(this, closestAsteroid);
 
-                this.tweens.add({
-                    targets: loadingFill,
-                    width: 228,
-                    duration: 3000,
-                    ease: 'Linear',
-                    onComplete: () => {
-                        closestAsteroid.destroy();
-                        loadingBar.destroy();
-                        loadingFill.destroy();
-                        Overlay.createPopup('Destroyed nearby asteroid.');
-                    }
+                this.currentPlayerAction.onDestroy.on(LoadingBarAction.COMPLETED, () => {
+                    Overlay.createPopup(`Asteroid at ${closestAsteroid.x}, ${closestAsteroid.y} has been destroyed.`);
+                    closestAsteroid.destroy();
+                    this.currentPlayerAction.onDestroy.off(LoadingBarAction.COMPLETED);
+                    this.currentPlayerAction = null;
                 });
-
             }
         });
     }
@@ -243,6 +235,10 @@ class TestScene extends Scene {
         }
 
         return acceleratedSpeed;
+    }
+
+    destroyAsteroid(asteroid) {
+
     }
 }
 
