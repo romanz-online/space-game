@@ -26,7 +26,8 @@ class TestScene extends Scene {
 
         this.load.image('small_freighter', 'assets/small_freighter.png');
 
-        // for Overlay
+        // for the loading bar
+        // TODO: should probably go into overlay.js, but I'm not sure. It might be a bit messy
         this.load.atlas('ui', 'assets/ui/nine-slice.png', 'assets/ui/nine-slice.json');
     }
 
@@ -160,7 +161,6 @@ class TestScene extends Scene {
         // moving environment visuals
         this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
         this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
-
         this.stars.tilePositionX += this.ship.body.deltaX() * 2;
         this.stars.tilePositionY += this.ship.body.deltaY() * 2;
     }
