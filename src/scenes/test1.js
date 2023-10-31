@@ -6,9 +6,9 @@ import LoadingBarAction from '../util/loadingBarAction';
 let asteroids;
 let Overlay;
 
-class TestScene extends Scene {
+class TestScene1 extends Scene {
     constructor(resolutionConfig) {
-        super({ key: 'TestScene', active: true });
+        super({ key: 'TestScene1', active: true });
         this.resolution = resolutionConfig;
     }
 
@@ -42,7 +42,8 @@ class TestScene extends Scene {
         this.anims.create({ key: 'asteroid4-anim', frames: this.anims.generateFrameNumbers('asteroid4-sheet', { start: 0, end: 23 }), frameRate: 20, repeat: -1 });
 
         //  World size is 8000 x 6000
-        this.bg = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'background').setScrollFactor(0);
+        // this.bg = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'background').setScrollFactor(0);
+        this.add.rectangle(0, 0, this.resolution.width, this.resolution.height, 0xff0000);
 
         //  Add our planets, etc
         this.add.image(512, 680, 'space', 'blue-planet').setOrigin(0).setScrollFactor(0.6);
@@ -153,7 +154,7 @@ class TestScene extends Scene {
             });
         });
 
-        this.input.keyboard.on('keyup-E', () => {
+        this.input.keyboard.on('keyup-SPACE', () => {
             // Check for overlap between the ship and asteroids
             const overlappingAsteroids = asteroids.getChildren().filter(asteroid => {
                 return Phaser.Geom.Intersects.RectangleToRectangle(this.ship.getBounds(), asteroid.getBounds());
@@ -174,11 +175,6 @@ class TestScene extends Scene {
                     this.currentPlayerAction = null;
                 });
             }
-        });
-
-        
-        this.input.keyboard.on('keyup-SPACE', () => {
-            this.scene.start('TestScene1');
         });
     }
 
@@ -205,8 +201,8 @@ class TestScene extends Scene {
         }
 
         // moving environment visuals
-        this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
-        this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
+        // this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
+        // this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
 
         this.stars.tilePositionX += this.ship.body.deltaX() * 2;
         this.stars.tilePositionY += this.ship.body.deltaY() * 2;
@@ -252,4 +248,4 @@ function loadTextures(scene) {
     scene.textures.addSpriteSheetFromAtlas('asteroid4-sheet', { atlas: 'space', frame: 'asteroid4', frameWidth: 64 });
 }
 
-export default TestScene;
+export default TestScene1;
