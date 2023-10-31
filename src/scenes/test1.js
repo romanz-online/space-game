@@ -8,7 +8,7 @@ let Overlay;
 
 class TestScene1 extends Scene {
     constructor(resolutionConfig) {
-        super({ key: 'TestScene1' });
+        super({ key: 'TestScene1', active: false });
         this.resolution = resolutionConfig;
     }
 
