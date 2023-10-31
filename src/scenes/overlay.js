@@ -12,18 +12,19 @@ class OverlayScene extends Scene {
     stats = '$!$%@';
 
     preload() {
-        this.load.scenePlugin({
-            key: 'rexuiplugin',
-            url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
-            sceneKey: 'rexUI'
-        });
+        // TODO: make this work :( the URL is wrong(?) but I don't know why
+        this.load.scenePlugin('rexuiplugin', 'plugins/rexuiplugin.min.js', 'rexuiplugin', 'rexUI');
+        // this.load.scenePlugin({
+        //     key: 'rexuiplugin',
+        //     url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+        //     sceneKey: 'rexUI'
+        // });
     }
 
     create() {
-        loadTextures(this);
-
         this.hp = this.add.text(this.cameras.main.worldView.left + 16, this.cameras.main.worldView.top + 16, `Hull Integrity: ${this.hp}`, { fontSize: '24px', fill: '#FFF' })
             .setScrollFactor(0);
+
         this.stats = this.add.text(this.cameras.main.worldView.left + 16, this.cameras.main.worldView.top + 48, `Other stats: ${this.stats}`, { fontSize: '24px', fill: '#FFF' })
             .setScrollFactor(0);
     }
@@ -122,10 +123,6 @@ function createLabel(scene, text) {
             bottom: 10
         }
     });
-}
-
-function loadTextures(scene) {
-
 }
 
 export default OverlayScene;
