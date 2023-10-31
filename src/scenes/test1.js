@@ -8,7 +8,7 @@ let Overlay;
 
 class TestScene1 extends Scene {
     constructor(resolutionConfig) {
-        super({ key: 'TestScene1', active: true });
+        super({ key: 'TestScene1' });
         this.resolution = resolutionConfig;
     }
 
@@ -43,8 +43,8 @@ class TestScene1 extends Scene {
 
         //  World size is 8000 x 6000
         // this.bg = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'background').setScrollFactor(0);
-        this.add.rectangle(0, 0, this.resolution.width, this.resolution.height, 0xff0000);
-
+        // this.add.rectangle(0, 0, 8000, 6000, 0xff0000);
+        this.cameras.main.setBackgroundColor(0xff0000);
         //  Add our planets, etc
         this.add.image(512, 680, 'space', 'blue-planet').setOrigin(0).setScrollFactor(0.6);
         this.add.image(2833, 1246, 'space', 'brown-planet').setOrigin(0).setScrollFactor(0.6);
@@ -53,17 +53,6 @@ class TestScene1 extends Scene {
         this.add.image(908, 3922, 'space', 'gas-giant').setOrigin(0).setScrollFactor(0.6);
         this.add.image(3140, 2974, 'space', 'brown-planet').setOrigin(0).setScrollFactor(0.6).setScale(0.8).setTint(0x882d2d);
         this.add.image(6052, 4280, 'space', 'purple-planet').setOrigin(0).setScrollFactor(0.6);
-
-        asteroids = this.physics.add.staticGroup();
-        asteroids.create(4300, 3000) // coordinates
-            .play('asteroid1-anim') // play the animated sprite
-            .setSize(400, 400) // hitbox for detecting proximity
-            .refreshBody(); // need to do this to make the object load in
-
-        asteroids.create(3700, 3000)
-            .play('asteroid1-anim')
-            .setSize(400, 400)
-            .refreshBody();
 
         for (let i = 0; i < 8; i++) {
             this.add.image(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000), 'space', 'eyes').setBlendMode(1).setScrollFactor(0.8);
@@ -152,29 +141,6 @@ class TestScene1 extends Scene {
                 duration: 500 * Math.abs(deltaRotation),
                 ease: 'Sine.easeInOut'
             });
-        });
-
-        this.input.keyboard.on('keyup-SPACE', () => {
-            // Check for overlap between the ship and asteroids
-            const overlappingAsteroids = asteroids.getChildren().filter(asteroid => {
-                return Phaser.Geom.Intersects.RectangleToRectangle(this.ship.getBounds(), asteroid.getBounds());
-            });
-
-            if (overlappingAsteroids.length > 0) {
-                // The ship is overlapping with at least one asteroid
-                const closestAsteroid = overlappingAsteroids.reduce((distance, asteroid) => {
-                    const asteroidDistance = pMath.Distance.Between(this.ship.x, this.ship.y, asteroid.x, asteroid.y);
-                    return (asteroidDistance < distance) ? { asteroid, distance: asteroidDistance } : asteroid;
-                }, { asteroid: overlappingAsteroids[0], distance: pMath.Distance.Between(this.ship.x, this.ship.y, overlappingAsteroids[0].x, overlappingAsteroids[0].y) });
-
-                this.currentPlayerAction = new LoadingBarAction(this, closestAsteroid);
-                this.currentPlayerAction.onDestroy.on(LoadingBarAction.COMPLETED, () => {
-                    Overlay.createPopup(`Asteroid at ${closestAsteroid.x}, ${closestAsteroid.y} has been destroyed.`);
-                    closestAsteroid.destroy();
-                    this.currentPlayerAction.onDestroy.off(LoadingBarAction.COMPLETED);
-                    this.currentPlayerAction = null;
-                });
-            }
         });
     }
 
