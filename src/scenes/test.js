@@ -163,6 +163,18 @@ class TestScene extends Scene {
             }
         });
 
+        // zoom
+        this.input.on("wheel", (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+            if (deltaY > 0 && this.cameras.main.zoom - 0.1 > 0.1) {
+                this.cameras.main.zoom -= 0.1;
+            }
+            else if (deltaY < 0 && this.cameras.main.zoom + 0.1 <= 2) {
+                this.cameras.main.zoom += 0.1;
+            }
+
+            console.log(this.cameras.main.zoom);
+        });
+
         // temporary key to test scene switching
         this.input.keyboard.on('keyup-SPACE', () => { this.switchScene('TestScene1') });
     }
