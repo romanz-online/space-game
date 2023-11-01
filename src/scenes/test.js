@@ -47,17 +47,37 @@ class TestScene extends Scene {
         this.anims.create({ key: 'asteroid4-anim', frames: this.anims.generateFrameNumbers('asteroid4-sheet', { start: 0, end: 23 }), frameRate: 20, repeat: -1 });
 
         //  World size is 8000 x 6000
-        this.bg = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'background').setScrollFactor(0);
+        this.worldSizeX = 8000;
+        this.worldSizeY = 6000;
+        this.worldBoundaryRadius = this.worldSizeX > this.worldSizeY ? this.worldSizeY / 2 : this.worldSizeX / 2;
+        this.bg = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'background')
+            .setScrollFactor(0);
 
         //  Add our planets, etc.
-        this.add.image(512, 680, 'space', 'blue-planet').setOrigin(0).setScrollFactor(0.6);
-        this.add.image(2833, 1246, 'space', 'brown-planet').setOrigin(0).setScrollFactor(0.6);
-        this.add.image(3875, 531, 'space', 'sun').setOrigin(0).setScrollFactor(0.6);
-        this.add.image(908, 3922, 'space', 'gas-giant').setOrigin(0).setScrollFactor(0.6);
-        this.add.image(3140, 2974, 'space', 'brown-planet').setOrigin(0).setScrollFactor(0.6).setScale(0.8).setTint(0x882d2d);
-        this.add.image(6052, 4280, 'space', 'purple-planet').setOrigin(0).setScrollFactor(0.6);
+        this.add.image(512, 680, 'space', 'blue-planet')
+            .setOrigin(0)
+            .setScrollFactor(0.6);
+        this.add.image(2833, 1246, 'space', 'brown-planet')
+            .setOrigin(0)
+            .setScrollFactor(0.6);
+        this.add.image(3875, 531, 'space', 'sun')
+            .setOrigin(0)
+            .setScrollFactor(0.6);
+        this.add.image(908, 3922, 'space', 'gas-giant')
+            .setOrigin(0)
+            .setScrollFactor(0.6);
+        this.add.image(3140, 2974, 'space', 'brown-planet')
+            .setOrigin(0)
+            .setScrollFactor(0.6)
+            .setScale(0.8)
+            .setTint(0x882d2d);
+        this.add.image(6052, 4280, 'space', 'purple-planet')
+            .setOrigin(0)
+            .setScrollFactor(0.6);
 
-        const galaxy = this.add.image(5345 + 1024, 327 + 1024, 'space', 'galaxy').setBlendMode(1).setScrollFactor(0.6);
+        const galaxy = this.add.image(5345 + 1024, 327 + 1024, 'space', 'galaxy')
+            .setBlendMode(1)
+            .setScrollFactor(0.6);
         this.tweens.add({
             targets: galaxy,
             angle: 360,
@@ -67,46 +87,53 @@ class TestScene extends Scene {
         });
 
         for (let i = 0; i < 8; i++) {
-            this.add.image(Phaser.Math.Between(0, 8000), Phaser.Math.Between(0, 6000), 'space', 'eyes').setBlendMode(1).setScrollFactor(0.8);
+            this.add.image(Phaser.Math.Between(0, this.worldSizeX), Phaser.Math.Between(0, this.worldSizeY), 'space', 'eyes')
+                .setBlendMode(1)
+                .setScrollFactor(0.8);
         }
 
-        this.stars = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'stars').setScrollFactor(0);
+        this.stars = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'stars')
+            .setScrollFactor(0);
 
         asteroids = this.physics.add.staticGroup();
-        asteroids.create(4300, 3000) // coordinates
+        asteroids.create(this.worldSizeX / 2 + 300, this.worldSizeY / 2) // coordinates
             .play('asteroid1-anim') // play the animated sprite
             .setSize(400, 400) // hitbox for detecting proximity
             .refreshBody(); // need to do this to make the object load in
-        asteroids.create(3700, 3000)
+        asteroids.create(this.worldSizeX / 2 - 300, this.worldSizeY / 2)
             .play('asteroid1-anim')
             .setSize(400, 400)
             .refreshBody();
 
         // this.ship = this.physics.add.image(4000, 3000, 'space', 'ship').setDepth(2);
-        this.ship = this.physics.add.image(4000, 3000, 'small_freighter').setDepth(2);
-        this.ship.setDrag(300);
+        this.ship = this.physics.add.image(this.worldSizeX / 2, this.worldSizeY / 2, 'small_freighter').setDepth(2)
+            .setDrag(300)
+            .setAngularDrag(400)
+            .setMaxVelocity(600);
         this.ship.body.setAllowGravity(false);
-        this.ship.setAngularDrag(400);
-        this.ship.setMaxVelocity(600);
+
         this.cameras.main.startFollow(this.ship);
 
-        // TODO: emitter will have to be different based on what ship is being flown
-        const emitter = this.add.particles(0, 0, 'space', {
-            frame: 'blue',
-            speed: 100,
-            lifespan: {
-                onEmit: (particle, key, t, value) => { return Phaser.Math.Percent(this.ship.body.speed, 0, 300) * 2000; }
-            },
-            alpha: {
-                onEmit: (particle, key, t, value) => { return Phaser.Math.Percent(this.ship.body.speed, 0, 300); }
-            },
-            angle: {
-                onEmit: (particle, key, t, value) => { return (this.ship.angle - 180) + Phaser.Math.Between(-10, 10); }
-            },
-            scale: { start: 0.3, end: 0 },
-            blendMode: 'ADD'
-        });
-        emitter.startFollow(this.ship);
+        // minimap
+        const minimapZoom = this.worldSizeX > this.worldSizeY ? 100 / this.worldSizeY : 100 / this.worldSizeX;
+        this.minimap = this.cameras.add(this.resolution.width - 100 - 16, this.resolution.height - 100 - 16, 100, 100)
+            .setZoom(minimapZoom)
+            .setName('mini')
+            .setBackgroundColor(0x002244);
+        this.minimap.scrollX = this.worldSizeX / 2;
+        this.minimap.scrollY = this.worldSizeY / 2;
+        const minimapMask = this.make.graphics()
+            .fillCircle(this.minimap.x + 50, this.minimap.y + 50, 50);
+        this.minimap.setMask(minimapMask.createGeometryMask());
+
+        this.boundary = this.add.graphics()
+            .fillCircle(this.worldSizeX / 2, this.worldSizeY / 2, this.worldBoundaryRadius);
+        // this.boundary.setAlpha(0.3);
+        this.physics.world.enable(this.boundary);
+        this.boundary.body.setCircle(this.worldBoundaryRadius)
+            .setImmovable(true);
+
+        this.generateEmitter(this.ship);
 
         // on-click movement
         this.input.on('pointerup', (pointer) => { this.moveShipToPointer(pointer); });
@@ -143,10 +170,12 @@ class TestScene extends Scene {
     update(time, delta) {
         // on-click movement
         if (this.target.x && this.target.y) {
-            this.movementLine.destroy();
-            this.movementLine = this.add.graphics();
-            this.movementLine.lineStyle(2, 0xff6600, 0.2);
-            this.movementLine.lineBetween(this.ship.x, this.ship.y, this.target.x, this.target.y);
+            if (this.movementLine) {
+                this.movementLine.destroy();
+            }
+            this.movementLine = this.add.graphics()
+                .lineStyle(2, 0xff6600, 0.2)
+                .lineBetween(this.ship.x, this.ship.y, this.target.x, this.target.y);
 
             const d = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
             if (d < 1) {
@@ -224,13 +253,41 @@ class TestScene extends Scene {
         this.target.x = worldX;
         this.target.y = worldY;
 
-        this.movementLine = this.add.graphics();
-        this.movementLine.lineStyle(2, 0xff6600, 0.2);
-        this.movementLine.lineBetween(this.ship.x, this.ship.y, this.target.x, this.target.y);
+        // minimap movement
+        const relativeX = (worldX - this.cameras.main.worldView.x);
+        const relativeY = (worldY - this.cameras.main.worldView.y);
+        const minimapRadius = this.minimap.width / 2;
+        const scale_factor_x = this.worldSizeX / this.minimap.width;
+        const scale_factor_y = this.worldSizeY / this.minimap.height;
+        const minimapDistance = Phaser.Math.Distance.Between(this.minimap.x + minimapRadius, this.minimap.y + minimapRadius, relativeX, relativeY);
+        if (minimapDistance <= minimapRadius) {
+            const minimapX = relativeX - this.minimap.x;
+            const minimapY = relativeY - this.minimap.y;
+            this.target.x = minimapX * scale_factor_x;
+            this.target.y = minimapY * scale_factor_y;
+        }
+
+        const boundsDistance = Phaser.Math.Distance.Between(this.worldSizeX / 2, this.worldSizeY / 2, this.target.x, this.target.y);
+        if (boundsDistance > this.worldBoundaryRadius) {
+            // Calculate the vector from the center of the circle to the pointer's position
+            const vectorX = this.target.x - this.worldSizeX / 2;
+            const vectorY = this.target.y - this.worldSizeY / 2;
+
+            // Calculate the length of the vector
+            const vectorLength = Math.sqrt(vectorX * vectorX + vectorY * vectorY);
+
+            // Calculate the unit vector (normalized vector)
+            const unitVectorX = vectorX / vectorLength;
+            const unitVectorY = vectorY / vectorLength;
+
+            // Calculate the point on the circle's boundary that is closest to the pointer
+            this.target.x = this.worldSizeX / 2 + this.worldBoundaryRadius * unitVectorX;
+            this.target.y = this.worldSizeY / 2 + this.worldBoundaryRadius * unitVectorY;
+        }
 
         this.ship.body.reset(this.ship.x, this.ship.y);
-        this.ship.setAngularVelocity(0);
-        this.ship.setAcceleration(0);
+        this.ship.setAngularVelocity(0)
+            .setAcceleration(0);
 
         this.distanceToMove = pMath.Distance.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
         const cursorAngle = Phaser.Math.Angle.Between(this.ship.x, this.ship.y, this.target.x, this.target.y);
@@ -269,6 +326,26 @@ class TestScene extends Scene {
 
     switchScene(s) {
         this.scene.start(s);
+    }
+
+    // TODO: emitter will have to be different based on what ship is being flown
+    generateEmitter(ship) {
+        this.add.particles(0, 0, 'space', {
+            frame: 'blue',
+            speed: 100,
+            lifespan: {
+                onEmit: (particle, key, t, value) => { return Phaser.Math.Percent(ship.body.speed, 0, 300) * 2000; }
+            },
+            alpha: {
+                onEmit: (particle, key, t, value) => { return Phaser.Math.Percent(ship.body.speed, 0, 300); }
+            },
+            angle: {
+                onEmit: (particle, key, t, value) => { return (ship.angle - 180) + Phaser.Math.Between(-10, 10); }
+            },
+            scale: { start: 0.3, end: 0 },
+            blendMode: 'ADD'
+        })
+            .startFollow(ship);
     }
 }
 

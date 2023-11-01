@@ -13,12 +13,12 @@ class OverlayScene extends Scene {
 
     preload() {
         // TODO: make this work :( the URL is wrong(?) but I don't know why
-        this.load.scenePlugin('rexuiplugin', 'plugins/rexuiplugin.min.js', 'rexuiplugin', 'rexUI');
-        // this.load.scenePlugin({
-        //     key: 'rexuiplugin',
-        //     url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
-        //     sceneKey: 'rexUI'
-        // });
+        // this.load.scenePlugin('rexuiplugin', 'plugins/rexuiplugin.min.js', 'rexuiplugin', 'rexUI');
+        this.load.scenePlugin({
+            key: 'rexuiplugin',
+            url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+            sceneKey: 'rexUI'
+        });
     }
 
     create() {
