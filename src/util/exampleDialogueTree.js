@@ -38,17 +38,4 @@ const dialogueTree = {
     }
 };
 
-function displayNode(nodeName) {
-    const node = dialogueTree[nodeName];
-    console.log(node.text);
-    if (node.options.length > 0) {
-        console.log('Options:');
-        node.options.forEach(option => {
-            console.log(option.text);
-            // on-click
-            // displayNode(option.next);
-        });
-    }
-}
-
-displayNode('start');
+export default dialogueTree;

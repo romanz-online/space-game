@@ -156,7 +156,7 @@ class TestScene extends Scene {
 
                 this.currentPlayerAction = new LoadingBarAction(this, closestObject);
                 this.currentPlayerAction.onDestroy.on(LoadingBarAction.COMPLETED, () => {
-                    Overlay.createPopup(`Object at ${closestObject.x}, ${closestObject.y} has been interacted with.`);
+                    Overlay.createDialogueTree('start');
                     closestObject.destroy();
                     this.currentPlayerAction.onDestroy.off(LoadingBarAction.COMPLETED);
                     this.currentPlayerAction = null;
