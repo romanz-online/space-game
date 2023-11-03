@@ -35,37 +35,49 @@ class OverlayScene extends Scene {
 
     createDialogueTree(text) {
         const node = dialogueTree[text];
+        if(!node) {
+            return;
+        }
 
         const height = 100;
         let dialog = this.rexUI.add.dialog({
             x: this.cameras.main.worldView.centerX,
             y: this.cameras.main.worldView.bottom - height,
 
-            background: this.rexUI.add.roundRectangle(0, 0, height, 100, 2, 0x1565c0),
+            background: this.rexUI.add.roundRectangle(0, 0, height, 100, 2, 0x00264d),
 
             title: this.rexUI.add.label({
-                background: this.rexUI.add.roundRectangle(0, 0, height, 40, 2, 0x003c8f),
+                background: this.rexUI.add.roundRectangle(0, 0, height, 40, 2, 0x001a33),
                 text: this.add.text(0, 0, 'Example Dialogue Tree', {
                     fontSize: '24px'
                 }),
                 space: {
-                    left: 15,
-                    right: 15,
+                    left: 10,
+                    right: 10,
                     top: 10,
                     bottom: 10
                 }
             }),
 
-            content: this.add.text(0, 0, node.text, {
-                fontSize: '24px'
+            content: this.rexUI.add.label({
+                background: this.rexUI.add.roundRectangle(0, 0, height, 40, 2, 0x001a33),
+                text: this.add.text(0, 0, node.text, {
+                    fontSize: '24px'
+                }),
+                space: {
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10
+                }
             }),
 
-            actions: node.options.length > 0 ? node.options.map(option => this.createLabel(option.text)) : [],
+            actions: node.options.length > 0 ? node.options.map(option => this.createAction(option.text)) : [],
 
             space: {
-                title: 25,
+                title: 10,
                 content: 25,
-                action: 15,
+                action: 10,
 
                 left: 20,
                 right: 20,
@@ -125,8 +137,8 @@ class OverlayScene extends Scene {
             }),
 
             actions: [
-                this.createLabel('Yes'),
-                this.createLabel('No')
+                this.createAction('Yes'),
+                this.createAction('No')
             ],
 
             space: {
@@ -167,12 +179,12 @@ class OverlayScene extends Scene {
             });
     }
 
-    createLabel(text) {
+    createAction(text) {
         return this.rexUI.add.label({
             // width: 40,
             // height: 40,
 
-            background: this.rexUI.add.roundRectangle(0, 0, 0, 0, 20, 0x5e92f3),
+            background: this.rexUI.add.roundRectangle(0, 0, 0, 0, 2, 0x004f99),
 
             text: this.add.text(0, 0, text, {
                 fontSize: '24px'

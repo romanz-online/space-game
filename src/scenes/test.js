@@ -156,7 +156,7 @@ class TestScene extends Scene {
 
                 this.currentPlayerAction = new LoadingBarAction(this, closestObject);
                 this.currentPlayerAction.onDestroy.on(LoadingBarAction.COMPLETED, () => {
-                    Overlay.createDialogueTree('start');
+                    Overlay.createPopup(`Object at ${closestObject.x}, ${closestObject.y} destroyed.`);
                     closestObject.destroy();
                     this.currentPlayerAction.onDestroy.off(LoadingBarAction.COMPLETED);
                     this.currentPlayerAction = null;
@@ -178,6 +178,8 @@ class TestScene extends Scene {
 
         // temporary key to test scene switching
         this.input.keyboard.on('keyup-SPACE', () => { this.switchScene('TestScene1') });
+        
+        Overlay.createDialogueTree('start');
     }
 
     update(time, delta) {
