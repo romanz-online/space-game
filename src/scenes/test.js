@@ -50,10 +50,10 @@ class TestScene extends Scene {
         this.worldSizeX = 8000;
         this.worldSizeY = 6000;
         this.worldBoundaryRadius = this.worldSizeX > this.worldSizeY ? this.worldSizeY / 2 : this.worldSizeX / 2;
-        this.bg = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'background')
+        this.bg = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.worldSizeX, this.worldSizeY, 'background')
             .setScrollFactor(0);
 
-        //  Add our planets, etc.
+        //  Add planets, etc.
         this.add.image(512, 680, 'space', 'blue-planet')
             .setOrigin(0)
             .setScrollFactor(0.6);
@@ -92,7 +92,7 @@ class TestScene extends Scene {
                 .setScrollFactor(0.8);
         }
 
-        this.stars = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.resolution.width, this.resolution.height, 'stars')
+        this.stars = this.add.tileSprite(this.resolution.width / 2, this.resolution.height / 2, this.worldSizeX, this.worldSizeY, 'stars')
             .setScrollFactor(0);
 
         asteroids = this.physics.add.staticGroup();
@@ -105,7 +105,7 @@ class TestScene extends Scene {
             .setSize(400, 400)
             .refreshBody();
 
-        // this.ship = this.physics.add.image(4000, 3000, 'space', 'ship').setDepth(2);
+        // this.ship = this.physics.add.image(0, 0, 'space', 'ship').setDepth(2)
         this.ship = this.physics.add.image(this.worldSizeX / 2, this.worldSizeY / 2, 'small_freighter').setDepth(2)
             .setDrag(300)
             .setAngularDrag(400)
@@ -115,16 +115,7 @@ class TestScene extends Scene {
         this.cameras.main.startFollow(this.ship);
 
         // minimap
-        const minimapZoom = this.worldSizeX > this.worldSizeY ? 100 / this.worldSizeY : 100 / this.worldSizeX;
-        this.minimap = this.cameras.add(this.resolution.width - 100 - 16, this.resolution.height - 100 - 16, 100, 100)
-            .setZoom(minimapZoom)
-            .setName('mini')
-            .setBackgroundColor(0x002244);
-        this.minimap.scrollX = this.worldSizeX / 2;
-        this.minimap.scrollY = this.worldSizeY / 2;
-        const minimapMask = this.make.graphics()
-            .fillCircle(this.minimap.x + 50, this.minimap.y + 50, 50);
-        this.minimap.setMask(minimapMask.createGeometryMask());
+        this.generateMinimap();
 
         this.boundary = this.add.graphics()
             .fillCircle(this.worldSizeX / 2, this.worldSizeY / 2, this.worldBoundaryRadius);
@@ -133,13 +124,23 @@ class TestScene extends Scene {
         this.boundary.body.setCircle(this.worldBoundaryRadius)
             .setImmovable(true);
 
+        // trail behind ship
         this.generateEmitter(this.ship);
+
+        // keys for easy reference
+        this.keyInputs = {
+            W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+            A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+            S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+            D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+            E: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
+        }
 
         // on-click movement
         this.input.on('pointerup', (pointer) => { this.moveShipToPointer(pointer); });
 
         // interact key
-        this.input.keyboard.on('keyup-E', () => {
+        this.keyInputs.E.on('down', () => {
             // TODO: when adding more interactable objects, change this to check for ALL overlapping objects
             // and then detect what type of object is closest, decide which action to take and then interact with it
 
@@ -165,11 +166,11 @@ class TestScene extends Scene {
 
         // zoom
         this.input.on("wheel", (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
-            if (deltaY > 0 && this.cameras.main.zoom - 0.1 > 0.1) {
-                this.cameras.main.zoom -= 0.1;
+            if (deltaY > 0 && this.cameras.main.zoom - 0.01 > 0.1) {
+                this.cameras.main.zoom -= 0.01;
             }
-            else if (deltaY < 0 && this.cameras.main.zoom + 0.1 <= 2) {
-                this.cameras.main.zoom += 0.1;
+            else if (deltaY < 0 && this.cameras.main.zoom + 0.01 <= 1.5) {
+                this.cameras.main.zoom += 0.01;
             }
 
             console.log(this.cameras.main.zoom);
@@ -199,6 +200,24 @@ class TestScene extends Scene {
             }
         }
 
+        // WASD movement
+        if (this.input.keyboard.checkDown(this.keyInputs.A)) {
+            this.ship.setAngularVelocity(-100);
+        }
+        else if (this.input.keyboard.checkDown(this.keyInputs.D)) {
+            this.ship.setAngularVelocity(100);
+        }
+        
+        if (this.input.keyboard.checkDown(this.keyInputs.W)) {
+            this.physics.velocityFromRotation(this.ship.rotation, 150, this.ship.body.acceleration);
+        }
+        else if (this.input.keyboard.checkDown(this.keyInputs.S)) {
+            this.physics.velocityFromRotation(this.ship.rotation, -50, this.ship.body.acceleration);
+        }
+        else {
+            this.ship.setAcceleration(0);
+        }
+
         // moving environment visuals
         this.bg.tilePositionX += this.ship.body.deltaX() * 0.5;
         this.bg.tilePositionY += this.ship.body.deltaY() * 0.5;
@@ -210,6 +229,19 @@ class TestScene extends Scene {
     // here's a question: is it even necessary to have multiple scenes for star systems to switch between?
     // it may be enough to just switch out the objects and assets depending on an outside configuration
     // e.g. a json + database
+
+    generateMinimap() {
+        const minimapZoom = this.worldSizeX > this.worldSizeY ? 100 / this.worldSizeY : 100 / this.worldSizeX;
+        this.minimap = this.cameras.add(this.resolution.width - 100 - 16, this.resolution.height - 100 - 16, 100, 100)
+            .setZoom(minimapZoom)
+            .setName('mini')
+            .setBackgroundColor(0x002244);
+        this.minimap.scrollX = this.worldSizeX / 2;
+        this.minimap.scrollY = this.worldSizeY / 2;
+        const minimapMask = this.make.graphics()
+            .fillCircle(this.minimap.x + 50, this.minimap.y + 50, 50);
+        this.minimap.setMask(minimapMask.createGeometryMask());
+    }
 
     getClosestObject(objectList) {
         const firstObj = objectList[0];
