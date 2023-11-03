@@ -33,3 +33,13 @@ const overlayScene = new OverlayScene(resolutionConfig);
 game.scene.add('TestScene', testScene);
 game.scene.add('TestScene1', testScene1);
 game.scene.add('OverlayScene', overlayScene);
+
+
+
+
+
+/*
+Using missions.json:
+ - Store a duplicate of the json for each player
+ - missionJSON.missions.find(mission => mission.id === "mission_1").completed = true;
+*/ 

@@ -1,0 +1,36 @@
+{
+    "missions": [
+        {
+            "id": "mission_1",
+            "name": "Mission 1",
+            "description": "Do a thing",
+            "completed": true,
+            "objectives": [
+                {
+                    "description": "Do the first thing",
+                    "completed": true
+                },
+                {
+                    "description": "Do the second thing",
+                    "completed": true
+                }
+            ]
+        },
+        {
+            "id": "mission_2",
+            "name": "Mission 2",
+            "description": "Here's your goal",
+            "completed": false,
+            "objectives": [
+                {
+                    "description": "Do this",
+                    "completed": false
+                },
+                {
+                    "description": "Do that",
+                    "completed": false
+                }
+            ]
+        }
+    ]
+}
